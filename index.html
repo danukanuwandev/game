@@ -1448,19 +1448,23 @@
             letter-spacing: 1.5px;
         }
 
-        #mobile-settings-panel select,
+        .mobile-settings-hint {
+            margin: -4px 0 10px;
+            color: #a8bac7;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
         #mobile-settings-panel input[type="range"] {
             width: 100%;
         }
 
-        #mobile-settings-panel select {
-            height: 36px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(0, 229, 255, 0.28);
-            border-radius: 7px;
-            background: #0c1724;
-            color: #dffaff;
-            padding: 0 8px;
+        .mobile-selected-control {
+            margin-bottom: 6px;
+            color: #00e5ff;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
         }
 
         .mobile-setting-row {
@@ -1528,6 +1532,23 @@
             align-items: center;
             justify-content: center;
             pointer-events: none;
+        }
+
+        #mobile-controls.editing .m-touch-btn,
+        #mobile-controls.editing #joystick-base {
+            outline: 2px dashed rgba(0, 229, 255, 0.8);
+            outline-offset: 3px;
+            cursor: grab;
+            transform: none !important;
+        }
+
+        #mobile-controls.editing #joystick-base {
+            pointer-events: auto;
+        }
+
+        #mobile-controls.editing .m-touch-btn:active,
+        #mobile-controls.editing .m-touch-btn.active {
+            transform: none;
         }
 
         #joystick-stick {
@@ -2150,24 +2171,8 @@
 
         <div id="mobile-settings-panel" aria-label="Mobile HUD settings">
             <div class="mobile-settings-title">HUD CONTROLS</div>
-            <select id="mobile-control-select" aria-label="Control to customize">
-                <option value="fire">Fire</option>
-                <option value="ads">ADS</option>
-                <option value="jump">Jump</option>
-                <option value="reload">Reload</option>
-                <option value="sprint">Sprint</option>
-                <option value="joystick">Joystick</option>
-            </select>
-            <div class="mobile-setting-row">
-                <label id="mobile-x-label" for="mobile-control-x">Right</label>
-                <input id="mobile-control-x" type="range" min="0" max="360" value="28">
-                <output id="mobile-control-x-output">28</output>
-            </div>
-            <div class="mobile-setting-row">
-                <label for="mobile-control-y">Bottom</label>
-                <input id="mobile-control-y" type="range" min="0" max="300" value="35">
-                <output id="mobile-control-y-output">35</output>
-            </div>
+            <div class="mobile-settings-hint">Tap or drag a control to select/move it. Resize it below.</div>
+            <div id="mobile-selected-control" class="mobile-selected-control">FIRE</div>
             <div class="mobile-setting-row">
                 <label for="mobile-control-size">Size</label>
                 <input id="mobile-control-size" type="range" min="42" max="120" value="78">
@@ -3566,53 +3571,104 @@
             function initMobileHUDSettings() {
                 const gear = document.getElementById('mobile-settings-btn');
                 const panel = document.getElementById('mobile-settings-panel');
-                const select = document.getElementById('mobile-control-select');
-                const xInput = document.getElementById('mobile-control-x');
-                const yInput = document.getElementById('mobile-control-y');
+                const mobileControls = document.getElementById('mobile-controls');
+                const selectedControlLabel = document.getElementById('mobile-selected-control');
                 const sizeInput = document.getElementById('mobile-control-size');
-                const xOutput = document.getElementById('mobile-control-x-output');
-                const yOutput = document.getElementById('mobile-control-y-output');
                 const sizeOutput = document.getElementById('mobile-control-size-output');
-                const xLabel = document.getElementById('mobile-x-label');
-                if (!gear || !panel || !select || !xInput || !yInput || !sizeInput) return;
+                if (!gear || !panel || !mobileControls || !selectedControlLabel || !sizeInput || !sizeOutput) return;
 
                 gear.style.display = isMobileDevice ? 'flex' : 'none';
                 applyMobileControlSettings();
 
+                let selectedControlKey = 'fire';
                 const updateSelectedControlInputs = () => {
-                    const key = select.value;
-                    const config = mobileControlSettings[key];
-                    xInput.max = key === 'sprint' || key === 'joystick' ? '600' : '360';
-                    xLabel.innerText = key === 'sprint' || key === 'joystick' ? 'Left' : 'Right';
-                    xInput.value = config.x;
-                    yInput.value = config.y;
-                    sizeInput.value = config.size;
-                    xOutput.value = config.x;
-                    yOutput.value = config.y;
-                    sizeOutput.value = config.size;
+                    selectedControlLabel.innerText = selectedControlKey.toUpperCase();
+                    sizeInput.value = mobileControlSettings[selectedControlKey].size;
+                    sizeOutput.value = sizeInput.value;
                 };
 
                 const updatePreview = () => {
-                    const key = select.value;
-                    mobileControlSettings[key] = {
-                        x: Number(xInput.value),
-                        y: Number(yInput.value),
-                        size: Number(sizeInput.value)
-                    };
-                    xOutput.value = xInput.value;
-                    yOutput.value = yInput.value;
+                    mobileControlSettings[selectedControlKey].size = Number(sizeInput.value);
                     sizeOutput.value = sizeInput.value;
                     applyMobileControlSettings();
                 };
 
+                let activeDrag = null;
+                const draggableControls = [
+                    ['fire', document.getElementById('m-btn-fire'), 'right'],
+                    ['ads', document.getElementById('m-btn-ads'), 'right'],
+                    ['jump', document.getElementById('m-btn-jump'), 'right'],
+                    ['reload', document.getElementById('m-btn-reload'), 'right'],
+                    ['sprint', document.getElementById('m-btn-sprint'), 'left'],
+                    ['joystick', document.getElementById('joystick-base'), 'left']
+                ];
+
+                draggableControls.forEach(([key, element, anchor]) => {
+                    if (!element) return;
+                    element.addEventListener('pointerdown', (event) => {
+                        if (!panel.classList.contains('open')
+                            || (event.pointerType === 'mouse' && event.button !== 0)) return;
+                        const parent = element.offsetParent;
+                        if (!parent) return;
+
+                        event.preventDefault();
+                        event.stopPropagation();
+                        selectedControlKey = key;
+                        updateSelectedControlInputs();
+                        const rect = element.getBoundingClientRect();
+                        activeDrag = {
+                            key: key,
+                            element: element,
+                            parent: parent,
+                            anchor: anchor,
+                            pointerId: event.pointerId,
+                            offsetX: event.clientX - rect.left,
+                            offsetY: event.clientY - rect.top
+                        };
+                        if (element.setPointerCapture) element.setPointerCapture(event.pointerId);
+                    });
+                });
+
+                document.addEventListener('pointermove', (event) => {
+                    if (!activeDrag || event.pointerId !== activeDrag.pointerId) return;
+                    event.preventDefault();
+
+                    const { key, element, parent, anchor, offsetX, offsetY } = activeDrag;
+                    const parentRect = parent.getBoundingClientRect();
+                    const maxLeft = Math.max(0, parent.clientWidth - element.offsetWidth);
+                    const maxTop = Math.max(0, parent.clientHeight - element.offsetHeight);
+                    const left = Math.max(0, Math.min(maxLeft,
+                        event.clientX - parentRect.left - offsetX));
+                    const top = Math.max(0, Math.min(maxTop,
+                        event.clientY - parentRect.top - offsetY));
+                    mobileControlSettings[key].x = Math.round(anchor === 'left'
+                        ? left
+                        : maxLeft - left);
+                    mobileControlSettings[key].y = Math.round(parent.clientHeight - top - element.offsetHeight);
+                    applyMobileControlSettings();
+                });
+
+                const endControlDrag = (event) => {
+                    if (activeDrag && event.pointerId === activeDrag.pointerId) {
+                        activeDrag = null;
+                    }
+                };
+                document.addEventListener('pointerup', endControlDrag);
+                document.addEventListener('pointercancel', endControlDrag);
+
+                mobileControls.addEventListener('touchstart', (event) => {
+                    if (!panel.classList.contains('open')) return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                }, { capture: true, passive: false });
+
                 gear.onclick = () => {
                     const open = panel.classList.toggle('open');
                     gear.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    mobileControls.classList.toggle('editing', open);
+                    if (!open) activeDrag = null;
                     if (open) updateSelectedControlInputs();
                 };
-                select.onchange = updateSelectedControlInputs;
-                xInput.oninput = updatePreview;
-                yInput.oninput = updatePreview;
                 sizeInput.oninput = updatePreview;
 
                 document.getElementById('mobile-controls-save').onclick = () => {
@@ -3621,6 +3677,7 @@
                         showToast('HUD controls saved');
                         panel.classList.remove('open');
                         gear.setAttribute('aria-expanded', 'false');
+                        mobileControls.classList.remove('editing');
                     } catch (e) {
                         showToast('Could not save HUD controls');
                     }
