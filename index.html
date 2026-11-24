@@ -2598,6 +2598,9 @@
             let lookTouchId = null;
             let lastLookX = 0;
             let lastLookY = 0;
+            let fireTouchId = null;
+            let lastFireTouchX = 0;
+            let lastFireTouchY = 0;
 
             /**
              * FULLSCREEN & LANDSCAPE ORIENTATION API
@@ -3765,6 +3768,17 @@
                     joyZ = -dy / JOY_MAX_RADIUS; // Up is forward (+Z)
                 }
 
+                function updateMobileAim(dx, dy) {
+                    const sens = isAimingDownSights ? 0.0032 : 0.0055;
+                    playerYaw -= dx * sens;
+                    playerPitch -= dy * sens;
+
+                    const maxPitch = Math.PI * 0.45;
+                    playerPitch = Math.max(-maxPitch, Math.min(maxPitch, playerPitch));
+                    weaponSwayX = Math.max(-0.06, Math.min(0.06, weaponSwayX - dx * 0.001));
+                    weaponSwayY = Math.max(-0.06, Math.min(0.06, weaponSwayY - dy * 0.001));
+                }
+
                 // 2. Touch Look & Aim (Right Thumb Drag)
                 if (lookZone) {
                     lookZone.addEventListener('touchstart', (e) => {
@@ -3791,16 +3805,7 @@
                                 const dy = touch.clientY - lastLookY;
                                 lastLookX = touch.clientX;
                                 lastLookY = touch.clientY;
-
-                                const sens = isAimingDownSights ? 0.0032 : 0.0055;
-                                playerYaw -= dx * sens;
-                                playerPitch -= dy * sens;
-
-                                const maxPitch = Math.PI * 0.45;
-                                playerPitch = Math.max(-maxPitch, Math.min(maxPitch, playerPitch));
-
-                                weaponSwayX = Math.max(-0.06, Math.min(0.06, weaponSwayX - dx * 0.001));
-                                weaponSwayY = Math.max(-0.06, Math.min(0.06, weaponSwayY - dy * 0.001));
+                                updateMobileAim(dx, dy);
                                 break;
                             }
                         }
@@ -3826,14 +3831,52 @@
                         e.preventDefault();
                         e.stopPropagation();
                         if (!gameActive) return;
+                        for (let i = 0; i < e.changedTouches.length; i++) {
+                            const touch = e.changedTouches[i];
+                            if (fireTouchId === null) {
+                                fireTouchId = touch.identifier;
+                                lastFireTouchX = touch.clientX;
+                                lastFireTouchY = touch.clientY;
+                                break;
+                            }
+                        }
+                        if (fireTouchId === null) return;
                         isMouseDown = true;
                         btnFire.classList.add('active');
                         shootWeapon();
                     }, { passive: false });
 
+                    btnFire.addEventListener('touchmove', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!gameActive || fireTouchId === null) return;
+                        for (let i = 0; i < e.changedTouches.length; i++) {
+                            const touch = e.changedTouches[i];
+                            if (touch.identifier === fireTouchId) {
+                                const dx = touch.clientX - lastFireTouchX;
+                                const dy = touch.clientY - lastFireTouchY;
+                                lastFireTouchX = touch.clientX;
+                                lastFireTouchY = touch.clientY;
+                                updateMobileAim(dx, dy);
+                                break;
+                            }
+                        }
+                    }, { passive: false });
+
                     const stopFire = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        if (fireTouchId !== null) {
+                            let fireTouchEnded = false;
+                            for (let i = 0; i < e.changedTouches.length; i++) {
+                                if (e.changedTouches[i].identifier === fireTouchId) {
+                                    fireTouchEnded = true;
+                                    break;
+                                }
+                            }
+                            if (!fireTouchEnded) return;
+                        }
+                        fireTouchId = null;
                         isMouseDown = false;
                         btnFire.classList.remove('active');
                     };
@@ -4717,6 +4760,8 @@
                         me.velocityY = 0;
                         me.isGrounded = true;
                         isMouseDown = false;
+                        fireTouchId = null;
+                        document.getElementById('m-btn-fire').classList.remove('active');
 
                         enemy.hp = MAX_HP;
                         enemy.aiShootCooldown = 0.8;
@@ -4965,6 +5010,8 @@
                         matchEnding = true;
                         gameActive = false;
                         isMouseDown = false;
+                        fireTouchId = null;
+                        document.getElementById('m-btn-fire').classList.remove('active');
 
                         if (document.exitPointerLock) document.exitPointerLock();
 
@@ -5019,6 +5066,8 @@
                         gameActive = false;
                         matchEnding = false;
                         isMouseDown = false;
+                        fireTouchId = null;
+                        document.getElementById('m-btn-fire').classList.remove('active');
                         mobileCombatActive = false;
                         joyX = 0;
                         joyZ = 0;
@@ -5334,6 +5383,8 @@
                                     matchEnding = true;
                                     gameActive = false;
                                     isMouseDown = false;
+                                    fireTouchId = null;
+                                    document.getElementById('m-btn-fire').classList.remove('active');
                                     if (document.exitPointerLock) document.exitPointerLock();
                                 }
                                 if (!wasAlreadyEnding) {
