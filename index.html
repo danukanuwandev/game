@@ -717,6 +717,12 @@
             width: 100%;
             height: 100%;
             display: block;
+            transition: filter 1.5s ease-out, transform 1.5s ease-out;
+        }
+
+        #game-container.death-slow-motion #viewport {
+            filter: grayscale(0.85) saturate(0.35) brightness(0.62);
+            transform: scale(1.035) rotate(-1deg);
         }
 
         /* FPS HUD OVERLAY */
@@ -1038,6 +1044,171 @@
             z-index: 50;
         }
 
+        #round-scoreboard {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 16;
+            pointer-events: none;
+        }
+
+        .round-score {
+            min-width: 88px;
+            color: #dffaff;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+            text-align: center;
+        }
+
+        .round-score.player {
+            color: #00e5ff;
+        }
+
+        .round-score.enemy {
+            color: #ff6b81;
+        }
+
+        .round-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .round-dot {
+            width: 9px;
+            height: 9px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .round-dot.player {
+            border-color: #00e5ff;
+            background: #00e5ff;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
+        }
+
+        .round-dot.enemy {
+            border-color: #ff1744;
+            background: #ff1744;
+            box-shadow: 0 0 8px rgba(255, 23, 68, 0.8);
+        }
+
+        #victory-celebration {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 55;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            overflow: hidden;
+            background: radial-gradient(circle at center, rgba(0, 229, 255, 0.18), rgba(5, 8, 14, 0.94) 64%);
+            text-align: center;
+        }
+
+        #death-screen {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 54;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: radial-gradient(circle at center, rgba(80, 8, 18, 0.2), rgba(0, 0, 0, 0.78));
+            text-align: center;
+            pointer-events: none;
+        }
+
+        #death-screen.show {
+            display: flex;
+            animation: championFade 0.4s ease-out;
+        }
+
+        #death-title {
+            color: #ff4058;
+            font-size: clamp(42px, 8vw, 88px);
+            font-weight: 900;
+            letter-spacing: 6px;
+            text-shadow: 0 0 24px rgba(255, 23, 68, 0.9), 0 8px 30px #000;
+            animation: deathSlowPulse 1.5s ease-in-out infinite alternate;
+        }
+
+        #death-subtitle {
+            color: #ffffff;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: clamp(14px, 2.5vw, 22px);
+            letter-spacing: 4px;
+            text-shadow: 0 2px 10px #000;
+        }
+
+        #victory-celebration.show {
+            display: flex;
+            animation: championFade 0.55s ease-out;
+        }
+
+        #victory-celebration h2 {
+            margin: 0 0 8px;
+            color: #ffe66b;
+            font-size: clamp(46px, 9vw, 96px);
+            line-height: 0.95;
+            letter-spacing: 6px;
+            text-shadow: 0 0 18px rgba(255, 230, 107, 0.9), 0 8px 30px rgba(0, 0, 0, 0.9);
+            animation: championScale 1s cubic-bezier(.2, .9, .2, 1) infinite alternate;
+        }
+
+        #victory-celebration p {
+            color: #dffaff;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 10px #000;
+        }
+
+        #next-round-countdown {
+            margin-top: 20px;
+            color: #ffd600;
+            font-size: clamp(56px, 10vw, 112px);
+            font-weight: 800;
+            line-height: 1;
+            text-shadow: 0 0 32px rgba(255, 214, 0, 0.95);
+        }
+
+        .celebration-ring {
+            width: 170px;
+            height: 170px;
+            margin-bottom: 18px;
+            border: 4px solid rgba(255, 230, 107, 0.75);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 230, 107, 0.7), inset 0 0 30px rgba(0, 229, 255, 0.35);
+            animation: championRing 1.4s linear infinite;
+        }
+
+        @keyframes championFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes championScale {
+            from { transform: scale(0.94); }
+            to { transform: scale(1.04); }
+        }
+
+        @keyframes championRing {
+            from { transform: rotate(0deg) scale(0.88); }
+            to { transform: rotate(360deg) scale(1.08); }
+        }
+
+        @keyframes deathSlowPulse {
+            from { opacity: 0.65; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1.02); }
+        }
+
         #match-countdown {
             display: none;
             position: absolute;
@@ -1148,12 +1319,6 @@
             transform: scale(1.05);
         }
 
-        @media (pointer: coarse), (hover: none) {
-            #mobile-settings-btn {
-                display: flex;
-            }
-        }
-
         /* PORTRAIT ROTATE PROMPT (MOBILE ORIENTATION ENFORCEMENT) */
         #rotate-device-prompt {
             display: none;
@@ -1252,7 +1417,7 @@
             justify-content: center;
             pointer-events: auto;
             cursor: pointer;
-            z-index: 60;
+            z-index: 40;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
         }
 
@@ -1268,7 +1433,7 @@
             background: rgba(7, 13, 22, 0.94);
             box-shadow: 0 10px 34px rgba(0, 0, 0, 0.75);
             pointer-events: auto;
-            z-index: 61;
+            z-index: 41;
         }
 
         #mobile-settings-panel.open {
@@ -1920,38 +2085,11 @@
             <!-- EXIT BUTTON -->
             <button id="exit-btn" onclick="leaveMatch()">◀ LOBBY</button>
 
-            <button id="mobile-settings-btn" type="button" title="Mobile HUD settings"
-                aria-label="Open mobile HUD settings" aria-expanded="false">⚙</button>
-
-            <div id="mobile-settings-panel" aria-label="Mobile HUD settings">
-                <div class="mobile-settings-title">HUD CONTROLS</div>
-                <select id="mobile-control-select" aria-label="Control to customize">
-                    <option value="fire">Fire</option>
-                    <option value="ads">ADS</option>
-                    <option value="jump">Jump</option>
-                    <option value="reload">Reload</option>
-                    <option value="sprint">Sprint</option>
-                    <option value="joystick">Joystick</option>
-                </select>
-                <div class="mobile-setting-row">
-                    <label id="mobile-x-label" for="mobile-control-x">Right</label>
-                    <input id="mobile-control-x" type="range" min="0" max="360" value="28">
-                    <output id="mobile-control-x-output">28</output>
-                </div>
-                <div class="mobile-setting-row">
-                    <label for="mobile-control-y">Bottom</label>
-                    <input id="mobile-control-y" type="range" min="0" max="300" value="35">
-                    <output id="mobile-control-y-output">35</output>
-                </div>
-                <div class="mobile-setting-row">
-                    <label for="mobile-control-size">Size</label>
-                    <input id="mobile-control-size" type="range" min="42" max="120" value="78">
-                    <output id="mobile-control-size-output">78</output>
-                </div>
-                <div class="mobile-settings-actions">
-                    <button id="mobile-controls-reset" type="button">RESET</button>
-                    <button id="mobile-controls-save" type="button">SAVE</button>
-                </div>
+            <div id="round-scoreboard" aria-label="Round score">
+                <div class="round-score player">YOU <span id="player-round-score">0</span>/5</div>
+                <div class="round-dots" id="player-round-dots"></div>
+                <div class="round-dots" id="enemy-round-dots"></div>
+                <div class="round-score enemy"><span id="enemy-round-score">0</span>/5 ENEMY</div>
             </div>
 
             <!-- TACTICAL COMPASS STRIP -->
@@ -2007,6 +2145,40 @@
             </div>
         </div>
 
+        <button id="mobile-settings-btn" type="button" title="Mobile HUD settings"
+            aria-label="Open mobile HUD settings" aria-expanded="false">⚙</button>
+
+        <div id="mobile-settings-panel" aria-label="Mobile HUD settings">
+            <div class="mobile-settings-title">HUD CONTROLS</div>
+            <select id="mobile-control-select" aria-label="Control to customize">
+                <option value="fire">Fire</option>
+                <option value="ads">ADS</option>
+                <option value="jump">Jump</option>
+                <option value="reload">Reload</option>
+                <option value="sprint">Sprint</option>
+                <option value="joystick">Joystick</option>
+            </select>
+            <div class="mobile-setting-row">
+                <label id="mobile-x-label" for="mobile-control-x">Right</label>
+                <input id="mobile-control-x" type="range" min="0" max="360" value="28">
+                <output id="mobile-control-x-output">28</output>
+            </div>
+            <div class="mobile-setting-row">
+                <label for="mobile-control-y">Bottom</label>
+                <input id="mobile-control-y" type="range" min="0" max="300" value="35">
+                <output id="mobile-control-y-output">35</output>
+            </div>
+            <div class="mobile-setting-row">
+                <label for="mobile-control-size">Size</label>
+                <input id="mobile-control-size" type="range" min="42" max="120" value="78">
+                <output id="mobile-control-size-output">78</output>
+            </div>
+            <div class="mobile-settings-actions">
+                <button id="mobile-controls-reset" type="button">RESET</button>
+                <button id="mobile-controls-save" type="button">SAVE</button>
+            </div>
+        </div>
+
         <!-- MOBILE TOUCH CONTROLS (VIRTUAL JOYSTICK & ACTION BUTTONS) -->
         <div id="mobile-controls">
             <!-- LEFT VIRTUAL JOYSTICK ZONE -->
@@ -2057,6 +2229,11 @@
             <div id="countdown-number">10</div>
         </div>
 
+        <div id="death-screen" aria-live="assertive">
+            <div id="death-title">PLAYER DOWN</div>
+            <div id="death-subtitle">SLOW MOTION // ROUND OVER</div>
+        </div>
+
         <!-- NOTIFICATION TOAST -->
         <div id="toast">Opponent disconnected!</div>
 
@@ -2064,12 +2241,20 @@
         <div id="game-over">
             <div id="result-text">VICTORY</div>
             <div id="result-subtitle">TARGET ELIMINATED // MISSION ACCOMPLISHED</div>
+            <div id="round-result-text" style="color:#dffaff; margin-bottom:18px; font-family:'Share Tech Mono',monospace;"></div>
             <div class="gameover-actions">
                 <button class="btn btn-create" style="width: 200px; margin: 0;" onclick="requestRestart()">PLAY
                     AGAIN</button>
                 <button class="btn btn-join" style="width: 170px; margin: 0;" onclick="leaveMatch()">MAIN
                     LOBBY</button>
             </div>
+        </div>
+
+        <div id="victory-celebration">
+            <div class="celebration-ring"></div>
+            <h2 id="champion-text">VICTORY</h2>
+            <p id="champion-subtitle">MATCH CHAMPION</p>
+            <div id="next-round-countdown" aria-live="assertive"></div>
         </div>
         <script>
             /**
@@ -2362,6 +2547,13 @@
             let matchCountdownStarted = false;
             let countdownEndAt = 0;
             let fightOverlayEndAt = 0;
+            let playerRoundWins = 0;
+            let enemyRoundWins = 0;
+            let roundNumber = 1;
+            let matchSeriesWinner = null;
+            let roundResultApplied = false;
+            let roundTransitionTimeoutId = null;
+            let roundCountdownEndAt = 0;
             let animationFrameId = null;
             let lastFrameTime = 0;
             let reloadTimeoutId = null;
@@ -3384,6 +3576,7 @@
                 const xLabel = document.getElementById('mobile-x-label');
                 if (!gear || !panel || !select || !xInput || !yInput || !sizeInput) return;
 
+                gear.style.display = isMobileDevice ? 'flex' : 'none';
                 applyMobileControlSettings();
 
                 const updateSelectedControlInputs = () => {
@@ -3645,7 +3838,8 @@
              * WEAPON SHOOTING, RECOIL, MUZZLE FLASH & BULLET PHYSICS
              */
             function shootWeapon() {
-                if (!gameActive || (isMatchIntroActive && !isCountdownRunning) || isFightStartDelay || me.reloading || me.shootCooldown > 0) return;
+                if (!gameActive || matchEnding || isCountdownRunning || (isMatchIntroActive && !isCountdownRunning)
+                    || isFightStartDelay || me.reloading || me.shootCooldown > 0) return;
 
                 if (me.ammo <= 0) {
                     reloadWeapon();
@@ -4317,6 +4511,7 @@
                             updateMatchCountdown(currentNow);
                             update(dt);
                         }
+                        updateRoundTransition(currentNow);
 
                         if (renderer && scene && camera) {
                             renderer.render(scene, camera);
@@ -4432,7 +4627,16 @@
                      */
                     function resetMatch(waitForCountdown = false) {
                         clearMatchCountdown();
+                        if (roundTransitionTimeoutId !== null) {
+                            clearTimeout(roundTransitionTimeoutId);
+                            roundTransitionTimeoutId = null;
+                        }
+                        roundCountdownEndAt = 0;
                         document.getElementById('game-over').style.display = 'none';
+                        document.getElementById('victory-celebration').classList.remove('show');
+                        document.getElementById('death-screen').classList.remove('show');
+                        gameContainer.classList.remove('death-slow-motion');
+                        roundResultApplied = false;
                         if (reloadTimeoutId !== null) {
                             clearTimeout(reloadTimeoutId);
                             reloadTimeoutId = null;
@@ -4517,7 +4721,185 @@
                         document.getElementById('lobby').style.display = 'none';
                         gameContainer.style.display = 'block';
                         initThreeScene();
+                        playerRoundWins = 0;
+                        enemyRoundWins = 0;
+                        roundNumber = 1;
+                        matchSeriesWinner = null;
+                        roundResultApplied = false;
+                        updateRoundScoreboard();
                         resetMatch(!isBotMode);
+                    }
+
+                    function updateRoundScoreboard() {
+                        const playerScore = document.getElementById('player-round-score');
+                        const enemyScore = document.getElementById('enemy-round-score');
+                        const playerDots = document.getElementById('player-round-dots');
+                        const enemyDots = document.getElementById('enemy-round-dots');
+                        if (playerScore) playerScore.innerText = playerRoundWins;
+                        if (enemyScore) enemyScore.innerText = enemyRoundWins;
+
+                        if (playerDots) {
+                            playerDots.innerHTML = '';
+                            for (let i = 0; i < 5; i++) {
+                                const dot = document.createElement('span');
+                                dot.className = 'round-dot' + (i < playerRoundWins ? ' player' : '');
+                                playerDots.appendChild(dot);
+                            }
+                        }
+                        if (enemyDots) {
+                            enemyDots.innerHTML = '';
+                            for (let i = 0; i < 5; i++) {
+                                const dot = document.createElement('span');
+                                dot.className = 'round-dot' + (i < enemyRoundWins ? ' enemy' : '');
+                                enemyDots.appendChild(dot);
+                            }
+                        }
+                    }
+
+                    function showVictoryCelebration(didWin) {
+                        const celebration = document.getElementById('victory-celebration');
+                        const title = document.getElementById('champion-text');
+                        const subtitle = document.getElementById('champion-subtitle');
+                        const countdown = document.getElementById('next-round-countdown');
+                        if (!celebration || !title || !subtitle || !countdown) return;
+                        if (roundTransitionTimeoutId !== null) {
+                            clearTimeout(roundTransitionTimeoutId);
+                            roundTransitionTimeoutId = null;
+                        }
+                        roundCountdownEndAt = 0;
+                        title.innerText = didWin ? 'VICTORY!' : 'DEFEAT';
+                        title.style.color = didWin ? '#ffe66b' : '#ff6b81';
+                        title.style.textShadow = '';
+                        subtitle.innerText = didWin ? 'MATCH CHAMPION // 4 ROUND WINS' : 'MATCH COMPLETE';
+                        countdown.innerText = '';
+                        celebration.classList.add('show');
+                        setTimeout(() => {
+                            celebration.classList.remove('show');
+                            document.getElementById('game-over').style.display = 'flex';
+                        }, 3200);
+                    }
+
+                    function applyRoundResult(didWin, syncScores = null) {
+                        if (syncScores) {
+                            playerRoundWins = syncScores.playerWins;
+                            enemyRoundWins = syncScores.enemyWins;
+                        } else if (!roundResultApplied) {
+                            if (didWin) {
+                                playerRoundWins++;
+                            } else {
+                                enemyRoundWins++;
+                            }
+                            roundNumber++;
+                        }
+
+                        roundResultApplied = true;
+                        updateRoundScoreboard();
+                        matchSeriesWinner = null;
+
+                        if (playerRoundWins >= 4) {
+                            matchSeriesWinner = 'player';
+                        } else if (enemyRoundWins >= 4) {
+                            matchSeriesWinner = 'enemy';
+                        } else if (roundNumber > 5) {
+                            matchSeriesWinner = playerRoundWins >= enemyRoundWins ? 'player' : 'enemy';
+                        }
+                    }
+
+                    function scheduleRoundTransition(callback, delay) {
+                        if (roundTransitionTimeoutId !== null) {
+                            clearTimeout(roundTransitionTimeoutId);
+                        }
+                        roundTransitionTimeoutId = setTimeout(() => {
+                            roundTransitionTimeoutId = null;
+                            callback();
+                        }, delay);
+                    }
+
+                    function showDeathSequence(didWin, onComplete) {
+                        const deathScreen = document.getElementById('death-screen');
+                        document.getElementById('death-title').innerText = didWin ? 'ENEMY DOWN' : 'PLAYER DOWN';
+                        deathScreen.classList.add('show');
+                        gameContainer.classList.add('death-slow-motion');
+                        scheduleRoundTransition(() => {
+                            deathScreen.classList.remove('show');
+                            gameContainer.classList.remove('death-slow-motion');
+                            onComplete();
+                        }, 1500);
+                    }
+
+                    function showRoundTransition(didWin) {
+                        const celebration = document.getElementById('victory-celebration');
+                        const title = document.getElementById('champion-text');
+                        const subtitle = document.getElementById('champion-subtitle');
+                        const countdown = document.getElementById('next-round-countdown');
+                        title.innerText = didWin ? 'VICTORY!' : 'DEFEAT';
+                        title.style.color = didWin ? '#ffe66b' : '#ff6b81';
+                        title.style.textShadow = '';
+                        subtitle.innerText = didWin ? 'ROUND WON' : 'ROUND LOST';
+                        countdown.innerText = '';
+                        celebration.classList.add('show');
+                        scheduleRoundTransition(showNextRoundCountdown, 1200);
+                    }
+
+                    function showNextRoundCountdown() {
+                        const title = document.getElementById('champion-text');
+                        const subtitle = document.getElementById('champion-subtitle');
+                        const countdown = document.getElementById('next-round-countdown');
+                        title.innerText = `ROUND ${roundNumber}`;
+                        title.style.color = '#ffffff';
+                        title.style.textShadow = '0 0 30px rgba(255,255,255,0.9), 0 8px 30px rgba(0,0,0,0.9)';
+                        subtitle.innerText = '';
+                        countdown.innerText = '3';
+                        countdown.style.color = '#ffffff';
+                        countdown.style.textShadow = '0 0 32px rgba(255,255,255,0.95)';
+                        roundCountdownEndAt = performance.now() + 3000;
+                        scheduleRoundTransition(() => {
+                            roundCountdownEndAt = 0;
+                            title.innerText = 'FIGHT!';
+                            countdown.innerText = '';
+                            scheduleRoundTransition(() => {
+                                if (!isBotMode && !isHost && conn && conn.open) return;
+                                startNextRound();
+                            }, 900);
+                        }, 3000);
+                    }
+
+                    function startNextRound() {
+                        if (matchSeriesWinner) return;
+                        if (!isBotMode && isHost && conn && conn.open) {
+                            try {
+                                conn.send({ type: 'next-round', roundNumber: roundNumber });
+                            } catch (e) {
+                                console.error('Next round sync error:', e);
+                            }
+                        }
+                        resetMatch();
+                    }
+
+                    function updateRoundTransition(now) {
+                        if (!roundCountdownEndAt) return;
+                        const secondsLeft = Math.ceil((roundCountdownEndAt - now) / 1000);
+                        document.getElementById('next-round-countdown').innerText = Math.max(1, secondsLeft);
+                    }
+
+                    function showRoundOutcome(didWin) {
+                        const resText = document.getElementById('result-text');
+                        const resSubtitle = document.getElementById('result-subtitle');
+                        const roundResultText = document.getElementById('round-result-text');
+                        resText.innerText = didWin ? 'VICTORY' : 'DEFEAT';
+                        resText.style.color = didWin ? '#00ff88' : '#ff1744';
+                        resSubtitle.innerText = didWin
+                            ? 'OPPONENT ELIMINATED // COMBAT SUPERIORITY ACHIEVED'
+                            : 'CRITICAL VITALS FAILURE // OPERATIVE DOWN';
+                        if (roundResultText) {
+                            roundResultText.innerText = `ROUND SCORE // YOU ${playerRoundWins} - ${enemyRoundWins} ENEMY`;
+                        }
+
+                        if (matchSeriesWinner) {
+                            showDeathSequence(didWin, () => showVictoryCelebration(matchSeriesWinner === 'player'));
+                        } else {
+                            showDeathSequence(didWin, () => showRoundTransition(didWin));
+                        }
                     }
 
                     function endGame(didWin) {
@@ -4529,21 +4911,31 @@
 
                         if (document.exitPointerLock) document.exitPointerLock();
 
-                        const resText = document.getElementById('result-text');
-                        const resSubtitle = document.getElementById('result-subtitle');
-                        if (didWin) {
-                            resText.innerText = 'VICTORY';
-                            resText.style.color = '#00ff88';
-                            resSubtitle.innerText = 'OPPONENT ELIMINATED // COMBAT SUPERIORITY ACHIEVED';
-                        } else {
-                            resText.innerText = 'DEFEAT';
-                            resText.style.color = '#ff1744';
-                            resSubtitle.innerText = 'CRITICAL VITALS FAILURE // OPERATIVE DOWN';
+                        applyRoundResult(didWin);
+
+                        if (!isBotMode && isHost && conn && conn.open) {
+                            try {
+                                conn.send({
+                                    type: 'round-result',
+                                    playerWins: playerRoundWins,
+                                    enemyWins: enemyRoundWins,
+                                    roundNumber: roundNumber
+                                });
+                            } catch (e) {
+                                console.error('Round result sync error:', e);
+                            }
                         }
-                        document.getElementById('game-over').style.display = 'flex';
+                        showRoundOutcome(didWin);
                     }
 
                     function performCleanRestart() {
+                        if (matchSeriesWinner) {
+                            playerRoundWins = 0;
+                            enemyRoundWins = 0;
+                            roundNumber = 1;
+                            matchSeriesWinner = null;
+                            updateRoundScoreboard();
+                        }
                         resetMatch();
                     }
 
@@ -4560,6 +4952,13 @@
 
                     function leaveMatch() {
                         clearMatchCountdown();
+                        if (roundTransitionTimeoutId !== null) {
+                            clearTimeout(roundTransitionTimeoutId);
+                            roundTransitionTimeoutId = null;
+                        }
+                        roundCountdownEndAt = 0;
+                        document.getElementById('death-screen').classList.remove('show');
+                        gameContainer.classList.remove('death-slow-motion');
                         gameActive = false;
                         matchEnding = false;
                         isMouseDown = false;
@@ -4862,6 +5261,30 @@
                                 if (me.hp <= 0) {
                                     endGame(false);
                                 }
+                            } else if (data.type === 'round-result') {
+                                if (!Number.isInteger(data.playerWins) || !Number.isInteger(data.enemyWins)
+                                    || !Number.isInteger(data.roundNumber)) return;
+                                const wasAlreadyEnding = matchEnding;
+                                const playerWins = isHost ? data.playerWins : data.enemyWins;
+                                const enemyWins = isHost ? data.enemyWins : data.playerWins;
+                                roundNumber = data.roundNumber;
+                                applyRoundResult(playerWins > enemyWins, {
+                                    playerWins: playerWins,
+                                    enemyWins: enemyWins
+                                });
+                                if (!matchEnding) {
+                                    clearMatchCountdown();
+                                    matchEnding = true;
+                                    gameActive = false;
+                                    isMouseDown = false;
+                                    if (document.exitPointerLock) document.exitPointerLock();
+                                }
+                                if (!wasAlreadyEnding) {
+                                    showRoundOutcome(playerWins > enemyWins);
+                                }
+                            } else if (data.type === 'next-round') {
+                                if (!Number.isInteger(data.roundNumber) || data.roundNumber !== roundNumber) return;
+                                resetMatch();
                             } else if (data.type === 'restart') {
                                 performCleanRestart();
                             }
