@@ -1,0 +1,7 @@
+name = "mini-clash-turn"
+main = "turn-worker.js"
+compatibility_date = "2024-12-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://YOUR-GITHUB-USERNAME.github.io"
+METERED_APP_DOMAIN = "YOUR-APP.metered.live"

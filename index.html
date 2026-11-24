@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="screen-orientation" content="landscape">
     <meta name="x5-orientation" content="landscape">
+    <meta name="turn-credentials-url" content="">
     <title>MINI CLASH 3D - Tactical 1st Person Shooter</title>
     <!-- Primary PeerJS CDN (cdnjs) with unpkg fallback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
@@ -2279,6 +2280,51 @@
                 }
             };
 
+            async function getPeerConfiguration() {
+                const endpointMeta = document.querySelector('meta[name="turn-credentials-url"]');
+                const endpoint = endpointMeta ? endpointMeta.content.trim() : '';
+                if (!endpoint) return PEER_CONFIG;
+
+                const endpointUrl = new URL(endpoint, window.location.href);
+                if (endpointUrl.protocol !== 'https:') {
+                    throw new Error('TURN credentials endpoint must use HTTPS.');
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);
+                let response;
+                try {
+                    response = await fetch(endpointUrl.href, {
+                        cache: 'no-store',
+                        headers: { Accept: 'application/json' },
+                        signal: controller.signal
+                    });
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+
+                if (!response.ok) {
+                    throw new Error(`TURN relay endpoint returned HTTP ${response.status}.`);
+                }
+                const iceServers = await response.json();
+                const hasTurnRelay = Array.isArray(iceServers) && iceServers.some((server) => {
+                    if (!server || !server.urls) return false;
+                    const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+                    return urls.some((url) => typeof url === 'string' && /^turns?:/i.test(url));
+                });
+                if (!hasTurnRelay) {
+                    throw new Error('TURN relay endpoint did not return valid relay servers.');
+                }
+
+                return {
+                    ...PEER_CONFIG,
+                    config: {
+                        ...PEER_CONFIG.config,
+                        iceServers: [...iceServers, ...PEER_CONFIG.config.iceServers]
+                    }
+                };
+            }
+
             // Audio Context & Realistic Sound Synthesizer (Zero external file dependencies)
             let audioCtx = null;
             function initAudio() {
@@ -2563,6 +2609,7 @@
             let lastFrameTime = 0;
             let reloadTimeoutId = null;
             let joinTimeoutTimer = null;
+            let networkAttemptId = 0;
             let roomCreationAttempts = 0;
 
             // Three.js Core
@@ -5138,9 +5185,10 @@
                         startGame();
                     }
 
-                    function createRoom() {
+                    async function createRoom() {
                         enterFullscreenAndLandscape();
                         cleanupNetwork();
+                        const attemptId = networkAttemptId;
                         isBotMode = false;
                         const roomCode = generateCode();
                         const peerId = 'miniclash-' + roomCode;
@@ -5151,15 +5199,32 @@
                         const codeDisplayEl = document.getElementById('code-display');
 
                         errorEl.innerText = '';
-                        statusEl.innerText = 'Connecting to signaling network...';
+                        const turnEndpoint = document.querySelector('meta[name="turn-credentials-url"]').content.trim();
+                        statusEl.innerText = turnEndpoint
+                            ? 'Preparing secure TURN relay...'
+                            : 'Connecting to signaling network...';
                         statusEl.style.color = '#ff9100';
                         roomInfoEl.style.display = 'block';
                         codeDisplayEl.innerText = '......';
 
                         try {
-                            peer = new Peer(peerId, PEER_CONFIG);
+                            const peerConfig = await getPeerConfiguration();
+                            if (attemptId !== networkAttemptId) return;
+                            peer = new Peer(peerId, peerConfig);
+
+                            joinTimeoutTimer = setTimeout(() => {
+                                if (attemptId !== networkAttemptId || !peer || peer.open) return;
+                                errorEl.style.color = '#ff5252';
+                                errorEl.innerText = 'Could not connect to the PeerJS signaling server. Check your internet connection.';
+                                cleanupNetwork();
+                            }, 30000);
 
                             peer.on('open', (id) => {
+                                if (attemptId !== networkAttemptId) return;
+                                if (joinTimeoutTimer) {
+                                    clearTimeout(joinTimeoutTimer);
+                                    joinTimeoutTimer = null;
+                                }
                                 isHost = true;
                                 roomCreationAttempts = 0;
                                 codeDisplayEl.innerText = roomCode;
@@ -5168,33 +5233,72 @@
                             });
 
                             peer.on('connection', (connection) => {
+                                if (attemptId !== networkAttemptId) {
+                                    connection.close();
+                                    return;
+                                }
                                 conn = connection;
                                 statusEl.innerText = 'Opponent found! Establishing secure P2P link...';
                                 statusEl.style.color = '#00ff88';
 
+                                joinTimeoutTimer = setTimeout(() => {
+                                    if (attemptId !== networkAttemptId || conn !== connection || connection.open) return;
+                                    statusEl.innerText = 'Connection timed out. This mobile network may require a TURN relay.';
+                                    statusEl.style.color = '#ff5252';
+                                    connection.close();
+                                    conn = null;
+                                    joinTimeoutTimer = null;
+                                }, 30000);
+
                                 const onConnectionReady = () => {
+                                    if (attemptId !== networkAttemptId || conn !== connection) return;
+                                    if (joinTimeoutTimer) {
+                                        clearTimeout(joinTimeoutTimer);
+                                        joinTimeoutTimer = null;
+                                    }
                                     const enemyLabel = document.getElementById('enemy-label-hud');
                                     if (enemyLabel) enemyLabel.innerText = 'ENEMY OPERATIVE';
                                     setupConnection();
                                     try {
-                                        conn.send({ type: 'handshake', role: 'host' });
-                                    } catch (e) { }
+                                        connection.send({ type: 'handshake', role: 'host' });
+                                    } catch (e) {
+                                        console.error('Host handshake send error:', e);
+                                    }
                                     startGame();
                                 };
 
-                                if (conn.open) {
+                                if (connection.open) {
                                     onConnectionReady();
                                 } else {
-                                    conn.on('open', onConnectionReady);
+                                    connection.on('open', onConnectionReady);
                                 }
 
-                                conn.on('error', (err) => {
+                                connection.on('error', (err) => {
+                                    if (attemptId !== networkAttemptId) return;
                                     console.error('Host connection error:', err);
-                                    errorEl.innerText = 'Connection error with opponent.';
+                                    if (joinTimeoutTimer) {
+                                        clearTimeout(joinTimeoutTimer);
+                                        joinTimeoutTimer = null;
+                                    }
+                                    statusEl.innerText = 'Peer connection failed. Check TURN relay configuration and retry.';
+                                    statusEl.style.color = '#ff5252';
+                                });
+
+                                connection.on('close', () => {
+                                    if (attemptId === networkAttemptId && conn === connection && !gameActive) {
+                                        if (joinTimeoutTimer) {
+                                            clearTimeout(joinTimeoutTimer);
+                                            joinTimeoutTimer = null;
+                                        }
+                                        conn = null;
+                                        statusEl.innerText = 'Connection closed before the match started. You can try again.';
+                                        statusEl.style.color = '#ff5252';
+                                    }
                                 });
                             });
 
                             peer.on('error', (err) => {
+                                if (attemptId !== networkAttemptId) return;
                                 console.error('Peer error (host):', err);
                                 if (err.type === 'unavailable-id') {
                                     // ID Collision: automatically retry with new code
@@ -5209,14 +5313,21 @@
                                 } else {
                                     errorEl.innerText = 'Room error: ' + (err.message || err.type);
                                 }
-                                roomInfoEl.style.display = 'none';
+                                errorEl.style.color = '#ff5252';
+                                cleanupNetwork();
                             });
                         } catch (e) {
-                            errorEl.innerText = 'PeerJS initialization failed: ' + e.message;
+                            if (attemptId !== networkAttemptId) return;
+                            console.error('Host network setup error:', e);
+                            errorEl.style.color = '#ff5252';
+                            errorEl.innerText = 'Network setup failed: ' + e.message;
+                            statusEl.innerText = 'Could not prepare the match connection.';
+                            statusEl.style.color = '#ff5252';
+                            cleanupNetwork();
                         }
                     }
 
-                    function joinRoom() {
+                    async function joinRoom() {
                         enterFullscreenAndLandscape();
                         let inputVal = document.getElementById('join-code').value.trim().toUpperCase();
                         // Allow pasting "miniclash-ABC123" or "ABC123"
@@ -5229,60 +5340,91 @@
                         }
 
                         cleanupNetwork();
+                        const attemptId = networkAttemptId;
                         isBotMode = false;
                         errorEl.style.color = '#ff9100';
-                        errorEl.innerText = 'Connecting to signaling network...';
+                        const turnEndpoint = document.querySelector('meta[name="turn-credentials-url"]').content.trim();
+                        errorEl.innerText = turnEndpoint
+                            ? 'Preparing secure TURN relay...'
+                            : 'Connecting to signaling network...';
 
                         try {
-                            peer = new Peer(PEER_CONFIG);
+                            const peerConfig = await getPeerConfiguration();
+                            if (attemptId !== networkAttemptId) return;
+                            peer = new Peer(peerConfig);
+
+                            joinTimeoutTimer = setTimeout(() => {
+                                if (attemptId !== networkAttemptId || !peer || peer.open) return;
+                                errorEl.style.color = '#ff5252';
+                                errorEl.innerText = 'Could not connect to the PeerJS signaling server. Check your internet connection.';
+                                cleanupNetwork();
+                            }, 30000);
 
                             peer.on('open', (myId) => {
+                                if (attemptId !== networkAttemptId) return;
+                                if (joinTimeoutTimer) {
+                                    clearTimeout(joinTimeoutTimer);
+                                    joinTimeoutTimer = null;
+                                }
                                 isHost = false;
-                                errorEl.innerText = `Connecting to match [${inputVal}]...`;
+                                errorEl.innerText = turnEndpoint
+                                    ? `Connecting to match [${inputVal}] through TURN...`
+                                    : `Connecting to match [${inputVal}]...`;
 
                                 // Connect using reliable JSON serialization (prevents binary packing errors)
                                 conn = peer.connect('miniclash-' + inputVal, {
                                     serialization: 'json'
                                 });
 
-                                // Allow slower signaling and WebRTC negotiation to finish.
+                                const connection = conn;
                                 joinTimeoutTimer = setTimeout(() => {
-                                    if (!gameActive && !(conn && conn.open)) {
+                                    if (attemptId === networkAttemptId && conn === connection && !connection.open) {
                                         errorEl.style.color = '#ff5252';
-                                        errorEl.innerText = 'Connection timed out. Check the match code, host status, and network connection.';
+                                        errorEl.innerText = 'Connection timed out. Check the match code and host; cross-network mobile links need a configured TURN relay.';
                                         cleanupNetwork();
                                     }
                                 }, 30000);
 
                                 const onClientReady = () => {
+                                    if (attemptId !== networkAttemptId || conn !== connection) return;
                                     if (joinTimeoutTimer) clearTimeout(joinTimeoutTimer);
+                                    joinTimeoutTimer = null;
                                     errorEl.innerText = '';
                                     const enemyLabel = document.getElementById('enemy-label-hud');
                                     if (enemyLabel) enemyLabel.innerText = 'ENEMY OPERATIVE';
                                     setupConnection();
                                     try {
-                                        conn.send({ type: 'handshake', role: 'client' });
-                                    } catch (e) { }
+                                        connection.send({ type: 'handshake', role: 'client' });
+                                    } catch (e) {
+                                        console.error('Client handshake send error:', e);
+                                        errorEl.style.color = '#ff5252';
+                                        errorEl.innerText = 'Could not complete the match handshake.';
+                                        cleanupNetwork();
+                                        return;
+                                    }
                                     startGame();
                                 };
 
                                 if (conn.open) {
                                     onClientReady();
                                 } else {
-                                    conn.on('open', onClientReady);
+                                    connection.on('open', onClientReady);
                                 }
 
-                                conn.on('error', (err) => {
+                                connection.on('error', (err) => {
+                                    if (attemptId !== networkAttemptId) return;
                                     console.error('Conn error (client):', err);
-                                    if (joinTimeoutTimer) clearTimeout(joinTimeoutTimer);
                                     errorEl.style.color = '#ff5252';
-                                    errorEl.innerText = 'Connection error with host. Please retry.';
+                                    errorEl.innerText = 'Peer connection failed. Check TURN relay configuration and retry.';
+                                    cleanupNetwork();
                                 });
                             });
 
                             peer.on('error', (err) => {
+                                if (attemptId !== networkAttemptId) return;
                                 console.error('Peer error (client):', err);
                                 if (joinTimeoutTimer) clearTimeout(joinTimeoutTimer);
+                                joinTimeoutTimer = null;
                                 errorEl.style.color = '#ff5252';
                                 if (err.type === 'peer-unavailable') {
                                     errorEl.innerText = `Match [${inputVal}] not found! Make sure host is waiting in lobby.`;
@@ -5291,10 +5433,14 @@
                                 } else {
                                     errorEl.innerText = 'Join failed: ' + (err.message || err.type);
                                 }
+                                cleanupNetwork();
                             });
                         } catch (e) {
+                            if (attemptId !== networkAttemptId) return;
+                            console.error('Client network setup error:', e);
                             errorEl.style.color = '#ff5252';
                             errorEl.innerText = 'Network error: ' + e.message;
+                            cleanupNetwork();
                         }
                     }
 
@@ -5411,6 +5557,7 @@
                     }
 
                     function cleanupNetwork() {
+                        networkAttemptId++;
                         if (joinTimeoutTimer) {
                             clearTimeout(joinTimeoutTimer);
                             joinTimeoutTimer = null;
