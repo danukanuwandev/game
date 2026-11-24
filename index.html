@@ -370,6 +370,12 @@
             font-size: 12px;
         }
 
+        .lobby-practice-button {
+            margin-bottom: 9px;
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+
         .lobby-join-row {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 82px;
@@ -729,9 +735,9 @@
             transform: translateX(-50%);
             width: 320px;
             height: 34px;
-            background: rgba(10, 16, 26, 0.8);
-            border: 1px solid rgba(0, 229, 255, 0.35);
-            border-radius: 6px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -739,8 +745,7 @@
             font-size: 14px;
             color: #00e5ff;
             letter-spacing: 3px;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 229, 255, 0.35);
         }
 
         #enemy-radar-blip {
@@ -873,12 +878,13 @@
         .hud-corner {
             position: absolute;
             bottom: 24px;
-            background: linear-gradient(135deg, rgba(14, 20, 32, 0.9), rgba(8, 12, 20, 0.95));
-            backdrop-filter: blur(8px);
-            padding: 14px 20px;
-            border-radius: 8px;
-            border: 1px solid rgba(0, 229, 255, 0.25);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            background: none;
+            backdrop-filter: none;
+            padding: 0;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
         }
 
         #health-hud {
@@ -978,22 +984,24 @@
             top: 20px;
             left: 28px;
             pointer-events: auto;
-            background: rgba(20, 28, 42, 0.85);
+            background: transparent;
             color: #cbd2d9;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 8px 16px;
-            border-radius: 6px;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 8px 4px;
+            border-radius: 0;
             font-size: 13px;
             font-weight: 700;
             letter-spacing: 1px;
             cursor: pointer;
             transition: 0.2s;
-            backdrop-filter: blur(4px);
+            backdrop-filter: none;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
         }
 
         #exit-btn:hover {
-            background: #ff1744;
-            color: #ffffff;
+            background: transparent;
+            color: #ff1744;
             border-color: #ff1744;
         }
 
@@ -1140,6 +1148,12 @@
             transform: scale(1.05);
         }
 
+        @media (pointer: coarse), (hover: none) {
+            #mobile-settings-btn {
+                display: flex;
+            }
+        }
+
         /* PORTRAIT ROTATE PROMPT (MOBILE ORIENTATION ENFORCEMENT) */
         #rotate-device-prompt {
             display: none;
@@ -1220,6 +1234,108 @@
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+        }
+
+        #mobile-settings-btn {
+            display: none;
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            width: 44px;
+            height: 44px;
+            border: 1px solid rgba(0, 229, 255, 0.45);
+            border-radius: 50%;
+            background: rgba(7, 13, 22, 0.72);
+            color: #00e5ff;
+            font-size: 21px;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            cursor: pointer;
+            z-index: 60;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+        }
+
+        #mobile-settings-panel {
+            display: none;
+            position: absolute;
+            top: 68px;
+            right: 18px;
+            width: 260px;
+            padding: 14px;
+            border: 1px solid rgba(0, 229, 255, 0.38);
+            border-radius: 12px;
+            background: rgba(7, 13, 22, 0.94);
+            box-shadow: 0 10px 34px rgba(0, 0, 0, 0.75);
+            pointer-events: auto;
+            z-index: 61;
+        }
+
+        #mobile-settings-panel.open {
+            display: block;
+        }
+
+        .mobile-settings-title {
+            margin-bottom: 10px;
+            color: #f4fbff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        #mobile-settings-panel select,
+        #mobile-settings-panel input[type="range"] {
+            width: 100%;
+        }
+
+        #mobile-settings-panel select {
+            height: 36px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(0, 229, 255, 0.28);
+            border-radius: 7px;
+            background: #0c1724;
+            color: #dffaff;
+            padding: 0 8px;
+        }
+
+        .mobile-setting-row {
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr) 44px;
+            align-items: center;
+            gap: 8px;
+            margin: 7px 0;
+            color: #a8bac7;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+        }
+
+        .mobile-setting-row output {
+            color: #00e5ff;
+            text-align: right;
+        }
+
+        .mobile-settings-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .mobile-settings-actions button {
+            height: 36px;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            border-radius: 7px;
+            background: #102132;
+            color: #dffaff;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .mobile-settings-actions button:last-child {
+            border-color: rgba(0, 255, 136, 0.55);
+            background: rgba(0, 255, 136, 0.12);
+            color: #00ff88;
         }
 
         #touch-joystick-zone {
@@ -1438,12 +1554,14 @@
             }
 
             .lobby-create-button,
+            .lobby-practice-button,
             .lobby-join-button {
                 padding: 5px 6px;
                 font-size: 10px;
             }
 
-            .lobby-create-button {
+            .lobby-create-button,
+            .lobby-practice-button {
                 margin-bottom: 4px;
             }
 
@@ -1567,6 +1685,7 @@
             }
 
             .lobby-create-button,
+            .lobby-practice-button,
             .lobby-join-button {
                 padding: 7px 6px;
                 font-size: 10px;
@@ -1747,8 +1866,6 @@
 
         <header class="lobby-topbar">
             <div class="lobby-top-actions">
-                <button class="lobby-icon-btn" onclick="toggleFullscreen()" title="Toggle fullscreen"
-                    aria-label="Toggle fullscreen">⛶</button>
             </div>
         </header>
 
@@ -1764,8 +1881,12 @@
             <span class="lobby-play-title">PLAY</span>
         </button>
 
-        <aside id="lobby-match-menu" class="lobby-actions" aria-label="Friend match menu" hidden>
+        <aside id="lobby-match-menu" class="lobby-actions" aria-label="Match mode menu" hidden>
             <button class="lobby-menu-back" type="button" onclick="hideFriendMatchMenu()">BACK</button>
+            <h2>SELECT MODE</h2>
+            <button id="practice-bot-button" class="btn btn-bot lobby-practice-button"
+                onclick="startSoloPractice()">PRACTICE WITH AI BOT</button>
+            <div class="divider">OR</div>
             <h2>FRIEND MATCH</h2>
             <button id="create-room-button" class="btn btn-create lobby-create-button"
                 onclick="createRoom()">CREATE FRIEND MATCH</button>
@@ -1798,24 +1919,45 @@
         <div id="hud">
             <!-- EXIT BUTTON -->
             <button id="exit-btn" onclick="leaveMatch()">◀ LOBBY</button>
-            <!-- FULLSCREEN LANDSCAPE TOGGLE -->
-            <button id="fs-btn" onclick="toggleFullscreen()" title="Fullscreen Landscape">⛶ FULLSCREEN</button>
+
+            <button id="mobile-settings-btn" type="button" title="Mobile HUD settings"
+                aria-label="Open mobile HUD settings" aria-expanded="false">⚙</button>
+
+            <div id="mobile-settings-panel" aria-label="Mobile HUD settings">
+                <div class="mobile-settings-title">HUD CONTROLS</div>
+                <select id="mobile-control-select" aria-label="Control to customize">
+                    <option value="fire">Fire</option>
+                    <option value="ads">ADS</option>
+                    <option value="jump">Jump</option>
+                    <option value="reload">Reload</option>
+                    <option value="sprint">Sprint</option>
+                    <option value="joystick">Joystick</option>
+                </select>
+                <div class="mobile-setting-row">
+                    <label id="mobile-x-label" for="mobile-control-x">Right</label>
+                    <input id="mobile-control-x" type="range" min="0" max="360" value="28">
+                    <output id="mobile-control-x-output">28</output>
+                </div>
+                <div class="mobile-setting-row">
+                    <label for="mobile-control-y">Bottom</label>
+                    <input id="mobile-control-y" type="range" min="0" max="300" value="35">
+                    <output id="mobile-control-y-output">35</output>
+                </div>
+                <div class="mobile-setting-row">
+                    <label for="mobile-control-size">Size</label>
+                    <input id="mobile-control-size" type="range" min="42" max="120" value="78">
+                    <output id="mobile-control-size-output">78</output>
+                </div>
+                <div class="mobile-settings-actions">
+                    <button id="mobile-controls-reset" type="button">RESET</button>
+                    <button id="mobile-controls-save" type="button">SAVE</button>
+                </div>
+            </div>
 
             <!-- TACTICAL COMPASS STRIP -->
             <div id="compass-bar">
                 <span id="compass-heading">000° N</span>
                 <div id="enemy-radar-blip"></div>
-            </div>
-
-            <!-- ENEMY / BOT STATUS (TOP RIGHT) -->
-            <div id="enemy-hud">
-                <div class="hud-title">
-                    <span id="enemy-label-hud">ENEMY OPERATIVE</span>
-                    <span id="enemy-hp-text">100 HP</span>
-                </div>
-                <div class="bar-bg">
-                    <div id="enemy-hp-bar"></div>
-                </div>
             </div>
 
             <!-- CROSSHAIR -->
@@ -1844,7 +1986,7 @@
                     <span>VITALS // ARMOR</span>
                     <span id="my-hp-pct">100%</span>
                 </div>
-                <div class="hp-value"><span id="my-hp-text">100</span> <span
+                <div class="hp-value"><span id="my-hp-text">200</span> <span
                         style="font-size: 14px; color: #8da2b5;">HP</span></div>
                 <div class="bar-bg">
                     <div id="my-hp-bar"></div>
@@ -2211,6 +2353,7 @@
             let conn = null;
             let isHost = false;
             let isBotMode = false;
+            const MAX_HP = 200;
             let gameActive = false;
             let matchEnding = false;
             let isMatchIntroActive = false;
@@ -2254,7 +2397,7 @@
             let joyOriginY = 0;
             let joyX = 0;
             let joyZ = 0;
-            const JOY_MAX_RADIUS = 50;
+            let JOY_MAX_RADIUS = 50;
             let lookTouchId = null;
             let lastLookX = 0;
             let lastLookY = 0;
@@ -2321,7 +2464,7 @@
                 x: -25, y: 0, z: 0,
                 vx: 0, vz: 0,
                 radius: 0.7,
-                hp: 100,
+                hp: MAX_HP,
                 ammo: 30, maxAmmo: 30, reserveAmmo: 120, reloading: false,
                 isGrounded: true,
                 velocityY: 0,
@@ -2351,7 +2494,7 @@
                 targetX: 25, targetY: 0, targetZ: 0,
                 yaw: Math.PI, pitch: 0,
                 radius: 0.7,
-                hp: 100,
+                hp: MAX_HP,
                 meshGroup: null,
                 muzzleFlash: null,
                 muzzleLight: null,
@@ -3166,9 +3309,145 @@
              * MOBILE TOUCH CONTROLS (VIRTUAL JOYSTICK, LOOK & ACTION BUTTONS)
              */
             let mobileControlsInitialized = false;
+
+            const MOBILE_CONTROL_STORAGE_KEY = 'miniClashMobileHudSettings';
+            const MOBILE_CONTROL_DEFAULTS = {
+                fire: { x: 28, y: 35, size: 78 },
+                ads: { x: 122, y: 36, size: 58 },
+                jump: { x: 32, y: 128, size: 58 },
+                reload: { x: 110, y: 110, size: 54 },
+                sprint: { x: 175, y: 60, size: 54 },
+                joystick: { x: 35, y: 30, size: 126 }
+            };
+            let mobileControlSettings = loadMobileControlSettings();
+
+            function loadMobileControlSettings() {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(MOBILE_CONTROL_STORAGE_KEY));
+                    if (!saved) return JSON.parse(JSON.stringify(MOBILE_CONTROL_DEFAULTS));
+                    const merged = JSON.parse(JSON.stringify(MOBILE_CONTROL_DEFAULTS));
+                    Object.keys(saved).forEach((key) => {
+                        if (merged[key]) merged[key] = { ...merged[key], ...saved[key] };
+                    });
+                    return merged;
+                } catch (e) {
+                    return JSON.parse(JSON.stringify(MOBILE_CONTROL_DEFAULTS));
+                }
+            }
+
+            function applyMobileControlSettings() {
+                ['fire', 'ads', 'jump', 'reload'].forEach((key) => {
+                    const button = document.getElementById(`m-btn-${key}`);
+                    const config = mobileControlSettings[key];
+                    if (!button || !config) return;
+                    button.style.right = `${config.x}px`;
+                    button.style.bottom = `${config.y}px`;
+                    button.style.width = `${config.size}px`;
+                    button.style.height = `${config.size}px`;
+                });
+
+                const sprint = document.getElementById('m-btn-sprint');
+                if (sprint) {
+                    sprint.style.left = `${mobileControlSettings.sprint.x}px`;
+                    sprint.style.bottom = `${mobileControlSettings.sprint.y}px`;
+                    sprint.style.width = `${mobileControlSettings.sprint.size}px`;
+                    sprint.style.height = `${mobileControlSettings.sprint.size}px`;
+                }
+
+                const joystick = document.getElementById('joystick-base');
+                if (joystick) {
+                    const size = mobileControlSettings.joystick.size;
+                    joystick.style.left = `${mobileControlSettings.joystick.x}px`;
+                    joystick.style.bottom = `${mobileControlSettings.joystick.y}px`;
+                    joystick.style.width = `${size}px`;
+                    joystick.style.height = `${size}px`;
+                    JOY_MAX_RADIUS = Math.max(24, size * 0.4);
+                    const stick = document.getElementById('joystick-stick');
+                    if (stick) {
+                        const stickSize = Math.max(34, Math.round(size * 0.412));
+                        stick.style.width = `${stickSize}px`;
+                        stick.style.height = `${stickSize}px`;
+                    }
+                }
+            }
+
+            function initMobileHUDSettings() {
+                const gear = document.getElementById('mobile-settings-btn');
+                const panel = document.getElementById('mobile-settings-panel');
+                const select = document.getElementById('mobile-control-select');
+                const xInput = document.getElementById('mobile-control-x');
+                const yInput = document.getElementById('mobile-control-y');
+                const sizeInput = document.getElementById('mobile-control-size');
+                const xOutput = document.getElementById('mobile-control-x-output');
+                const yOutput = document.getElementById('mobile-control-y-output');
+                const sizeOutput = document.getElementById('mobile-control-size-output');
+                const xLabel = document.getElementById('mobile-x-label');
+                if (!gear || !panel || !select || !xInput || !yInput || !sizeInput) return;
+
+                applyMobileControlSettings();
+
+                const updateSelectedControlInputs = () => {
+                    const key = select.value;
+                    const config = mobileControlSettings[key];
+                    xInput.max = key === 'sprint' || key === 'joystick' ? '600' : '360';
+                    xLabel.innerText = key === 'sprint' || key === 'joystick' ? 'Left' : 'Right';
+                    xInput.value = config.x;
+                    yInput.value = config.y;
+                    sizeInput.value = config.size;
+                    xOutput.value = config.x;
+                    yOutput.value = config.y;
+                    sizeOutput.value = config.size;
+                };
+
+                const updatePreview = () => {
+                    const key = select.value;
+                    mobileControlSettings[key] = {
+                        x: Number(xInput.value),
+                        y: Number(yInput.value),
+                        size: Number(sizeInput.value)
+                    };
+                    xOutput.value = xInput.value;
+                    yOutput.value = yInput.value;
+                    sizeOutput.value = sizeInput.value;
+                    applyMobileControlSettings();
+                };
+
+                gear.onclick = () => {
+                    const open = panel.classList.toggle('open');
+                    gear.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    if (open) updateSelectedControlInputs();
+                };
+                select.onchange = updateSelectedControlInputs;
+                xInput.oninput = updatePreview;
+                yInput.oninput = updatePreview;
+                sizeInput.oninput = updatePreview;
+
+                document.getElementById('mobile-controls-save').onclick = () => {
+                    try {
+                        localStorage.setItem(MOBILE_CONTROL_STORAGE_KEY, JSON.stringify(mobileControlSettings));
+                        showToast('HUD controls saved');
+                        panel.classList.remove('open');
+                        gear.setAttribute('aria-expanded', 'false');
+                    } catch (e) {
+                        showToast('Could not save HUD controls');
+                    }
+                };
+
+                document.getElementById('mobile-controls-reset').onclick = () => {
+                    mobileControlSettings = JSON.parse(JSON.stringify(MOBILE_CONTROL_DEFAULTS));
+                    localStorage.removeItem(MOBILE_CONTROL_STORAGE_KEY);
+                    applyMobileControlSettings();
+                    updateSelectedControlInputs();
+                    showToast('HUD controls reset');
+                };
+
+                updateSelectedControlInputs();
+            }
+
             function initMobileTouchControls() {
                 if (mobileControlsInitialized) return;
                 mobileControlsInitialized = true;
+                initMobileHUDSettings();
 
                 const joyZone = document.getElementById('touch-joystick-zone');
                 const joyBase = document.getElementById('joystick-base');
@@ -3833,7 +4112,7 @@
                                     bullets.splice(i, 1);
 
                                     if (b.canDamage) {
-                                        const dmg = 20; // 5 hits to eliminate
+                                        const dmg = 20;
                                         enemy.hp = Math.max(0, enemy.hp - dmg);
                                         updateHUD();
 
@@ -4012,10 +4291,12 @@
 
                     function updateHUD() {
                         document.getElementById('my-hp-text').innerText = me.hp;
-                        document.getElementById('my-hp-pct').innerText = `${me.hp}%`;
-                        document.getElementById('my-hp-bar').style.width = `${me.hp}%`;
-                        document.getElementById('enemy-hp-text').innerText = `${enemy.hp} HP`;
-                        document.getElementById('enemy-hp-bar').style.width = `${enemy.hp}%`;
+                        document.getElementById('my-hp-pct').innerText = `${Math.ceil(me.hp / MAX_HP * 100)}%`;
+                        document.getElementById('my-hp-bar').style.width = `${me.hp / MAX_HP * 100}%`;
+                        const enemyHpText = document.getElementById('enemy-hp-text');
+                        const enemyHpBar = document.getElementById('enemy-hp-bar');
+                        if (enemyHpText) enemyHpText.innerText = `${enemy.hp} HP`;
+                        if (enemyHpBar) enemyHpBar.style.width = `${enemy.hp / MAX_HP * 100}%`;
 
                         if (!me.reloading) {
                             document.getElementById('ammo-text').innerText = me.ammo;
@@ -4166,7 +4447,7 @@
                         particles = [];
 
                         // Reset player vitals
-                        me.hp = 100;
+                        me.hp = MAX_HP;
                         me.ammo = me.maxAmmo;
                         me.reserveAmmo = 120;
                         me.reloading = false;
@@ -4176,7 +4457,7 @@
                         me.isGrounded = true;
                         isMouseDown = false;
 
-                        enemy.hp = 100;
+                        enemy.hp = MAX_HP;
                         enemy.aiShootCooldown = 0.8;
 
                         // Spawn on opposite sides of arena
@@ -4331,7 +4612,7 @@
                         document.getElementById('lobby-match-menu').hidden = false;
                         playButton.hidden = true;
                         playButton.setAttribute('aria-expanded', 'true');
-                        document.getElementById('create-room-button').focus();
+                        document.getElementById('practice-bot-button').focus();
                     }
 
                     function hideFriendMatchMenu() {
@@ -4347,7 +4628,8 @@
                         cleanupNetwork();
                         isBotMode = true;
                         isHost = true;
-                        document.getElementById('enemy-label-hud').innerText = 'TACTICAL AI BOT';
+                        const enemyLabel = document.getElementById('enemy-label-hud');
+                        if (enemyLabel) enemyLabel.innerText = 'TACTICAL AI BOT';
                         startGame();
                     }
 
@@ -4386,7 +4668,8 @@
                                 statusEl.style.color = '#00ff88';
 
                                 const onConnectionReady = () => {
-                                    document.getElementById('enemy-label-hud').innerText = 'ENEMY OPERATIVE';
+                                    const enemyLabel = document.getElementById('enemy-label-hud');
+                                    if (enemyLabel) enemyLabel.innerText = 'ENEMY OPERATIVE';
                                     setupConnection();
                                     try {
                                         conn.send({ type: 'handshake', role: 'host' });
@@ -4469,7 +4752,8 @@
                                 const onClientReady = () => {
                                     if (joinTimeoutTimer) clearTimeout(joinTimeoutTimer);
                                     errorEl.innerText = '';
-                                    document.getElementById('enemy-label-hud').innerText = 'ENEMY OPERATIVE';
+                                    const enemyLabel = document.getElementById('enemy-label-hud');
+                                    if (enemyLabel) enemyLabel.innerText = 'ENEMY OPERATIVE';
                                     setupConnection();
                                     try {
                                         conn.send({ type: 'handshake', role: 'client' });
